@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>SkiAI - Your AI Assistant</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/4.3.0/marked.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              dark: {
+                100: "#ececf1",
+                200: "#9ca3af",
+                300: "#6b7280",
+                400: "#4b5563",
+                500: "#374151",
+                600: "#1f2937",
+                700: "#111827",
+                800: "#0d1117",
+                900: "#0a0c10",
+              },
+            },
+            animation: {
+              "typing-pulse": "typingPulse 1.2s infinite ease-in-out",
+              "fade-in": "fadeIn 0.5s ease-in-out",
+            },
+            keyframes: {
+              typingPulse: {
+                "0%, 100%": { opacity: 0.4 },
+                "50%": { opacity: 1 },
+              },
+              fadeIn: {
+                "0%": { opacity: 0, transform: "translateY(10px)" },
+                "100%": { opacity: 1, transform: "translateY(0)" },
+              },
+            },
+          },
+        },
+      };
+    </script>
+    <style>
+      @import url("https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap");
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      body {
+        background-color: #2b323e;
+        font-family: "Inter", sans-serif;
+      }
+      ::-webkit-scrollbar {
+        width: 6px;
+      }
+      ::-webkit-scrollbar-thumb {
+        background-color: rgba(156, 163, 175, 0.5);
+        border-radius: 6px;
+      }
+      ::-webkit-scrollbar-track {
+        background-color: rgba(31, 41, 55, 0.1);
+      }
+      pre::-webkit-scrollbar {
+        height: 4px;
+      }
+    </style>
+  </head>
+  <body class="text-gray-100 dark">
+    <div class="flex flex-col h-screen">
+      <!-- Header -->
+      <header
+        class="bg-dark-900 p-4 flex items-center justify-between shadow-lg"
+      >
+      <div class="flex items-center">
+        <div class="relative flex items-center">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            class="h-10 w-10 mr-3 text-blue-400 transform transition-all duration-500 hover:text-blue-300 hover:scale-110"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.5"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <!-- Outer circle with pulse effect -->
+            <circle
+              cx="12"
+              cy="12"
+              r="10"
+              class="animate-pulse"
+              stroke="currentColor"
+              stroke-opacity="0.5"
+            />
+            
+            <!-- Dynamic arc path -->
+            <path
+              d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c2.4 0 4.8-0.8 6.6-2.5"
+              class="text-purple-400"
+            />
+            
+            <!-- Ski path with shine effect -->
+            <path
+              d="M17.5 7.2c-2.3 0.6-4.4 2.7-6.8 6.3-2.3 3.6-3.8 5.5-4.7 5.5"
+              class="text-blue-300"
+              stroke-width="2"
+            />
+            
+            <!-- Curve with gradient -->
+            <path
+              d="M17.8 15.4c-1.4 0-2.8-1.1-4.2-3.4-1.4-2.3-2.1-3.7-1-4.4"
+              class="text-cyan-300"
+              stroke-width="2"
+            />
+          </svg>
+          
+          <!-- Text with enhanced gradient -->
+          <h1 class="text-2xl font-bold relative">
+            <span class="bg-gradient-to-r from-blue-400 via-indigo-400 to-purple-500 bg-clip-text text-transparent">
+              SkiAI
+            </span>
+            <!-- Subtle sparkle accent -->
+            <span class="absolute -top-1 -right-1 text-yellow-300 text-xs">🌙</span>
+          </h1>
+        </div>
+      </div>
+        <div class="flex items-center space-x-4">
+          <!-- Tombol Give (Donasi) dengan Ikon Tangan Memegang Hati -->
+          <a
+            href="https://saweria.co/skimatt"
+            class="p-2 rounded-full bg-gradient-to-r from-pink-500 to-purple-600 hover:from-pink-600 hover:to-purple-700 text-white shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-110 relative overflow-hidden group"
+            title="Give"
+          >
+            <!-- Efek bersinar -->
+            <div class="absolute inset-0 bg-white opacity-0 group-hover:opacity-10 transition-opacity duration-300"></div>
+            
+            <!-- Ikon Hand Holding Heart (Tangan Memegang Hati) -->
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              class="h-6 w-6 transform transition-transform duration-300 group-hover:rotate-12"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <path
+                d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"
+                fill="url(#heart-gradient)" <!-- Gradien untuk ikon -->
+              />
+              <path
+                d="M12 5 9.04 7.96a2.17 2.17 0 0 0 0 3.08v0c.82.82 2.18.82 3 0L12 11l1.96-1.96a2.17 2.17 0 0 0 0-3.08v0c-.82-.82-2.18-.82-3 0Z"
+                fill="url(#heart-gradient)" <!-- Gradien untuk ikon -->
+              />
+            </svg>
+        
+            <!-- Definisi Gradien untuk Ikon -->
+            <svg class="hidden">
+              <defs>
+                <linearGradient id="heart-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" style="stop-color:#FF9A9E;stop-opacity:1" />
+                  <stop offset="100%" style="stop-color:#FAD0C4;stop-opacity:1" />
+                </linearGradient>
+              </defs>
+            </svg>
+          </a>
+        </div>
+      </header>
+
+      <!-- Main Chat Container -->
+      <div class="flex-1 overflow-hidden flex flex-col" id="mainContainer">
+        <!-- Chat Messages -->
+        <div
+          id="chatContainer"
+          class="flex-1 overflow-y-auto p-4 space-y-6 bg-dark-900"
+        >
+          <div class="text-center text-white px-4 py-8 mt-16 animate-fade-in">
+            <h2 class="text-2xl font-medium mb-2 animate-typing">
+              Yoo, thanks udah mampir!
+            </h2>
+            <p class="text-lg text-gray-300 animate-typing-delay">
+              Semoga seru dan Bermanfaat
+            </p>
+          </div>
+        </div>
+      </div>
+
+<!-- Input Area -->
+<div class="bg-dark-900 p-4">
+  <div class="relative max-w-4xl mx-auto">
+    <div
+      class="w-full p-4 bg-dark-700 border border-dark-600 rounded-full flex items-center space-x-3 text-white placeholder-dark-300 shadow-lg transition-all duration-300 hover:border-blue-400 hover:shadow-xl relative overflow-hidden group"
+    >
+      <!-- Efek Gradien Latar Belakang -->
+      <div class="absolute inset-0 bg-gradient-to-r from-blue-500 to-purple-600 opacity-0 group-hover:opacity-20 transition-opacity duration-300"></div>
+
+      <!-- Input Text -->
+      <input
+        id="userInput"
+        type="text"
+        class="flex-1 bg-transparent focus:outline-none text-white placeholder-dark-300 z-10"
+        placeholder="Apa yang ingin Anda ketahui?"
+      />
+
+      <!-- Tombol Send -->
+      <div class="flex space-x-2 z-10">
+        <button
+          id="sendButton"
+          class="text-gray-400 hover:text-blue-400 transition-colors transform hover:scale-110"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            class="h-5 w-5"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <path d="M22 2L11 13" />
+            <path d="M22 2L15 22l-4-9-9-4 20-7z" />
+          </svg>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+    </div>
+
+    <script src="server.js"></script>
+  </body>
+</html>
