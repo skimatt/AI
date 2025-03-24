@@ -35,7 +35,7 @@ async function sendMessage() {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          model: "mistralai/mistral-small-3.1-24b-instruct",
+          model: "google/gemini-2.0-flash-001",
           messages: [{ role: "user", content: input }],
         }),
       }
