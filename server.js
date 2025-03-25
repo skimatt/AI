@@ -3,6 +3,7 @@ const userInput = document.getElementById("userInput");
 const sendButton = document.getElementById("sendButton");
 const suggestionButtons = document.querySelectorAll(".suggestion");
 let isProcessing = false;
+let stopTyping = false; // Flag untuk menghentikan pengetikan
 
 // Simulasi data AI dan tim pengembang
 const aiData = {
@@ -35,12 +36,16 @@ const aiData = {
 userInput.addEventListener("keypress", (event) => {
   if (event.key === "Enter" && !event.shiftKey) {
     event.preventDefault();
-    sendMessage();
+    if (!isProcessing) sendMessage();
+    else stopMessage();
   }
 });
 
-// Event listener untuk tombol Send
-sendButton.addEventListener("click", sendMessage);
+// Event listener untuk tombol Send/Stop
+sendButton.addEventListener("click", () => {
+  if (!isProcessing) sendMessage();
+  else stopMessage();
+});
 
 // Event listener untuk tombol saran
 suggestionButtons.forEach((button) => {
@@ -55,6 +60,9 @@ async function sendMessage() {
   const input = userInput.value.trim();
   if (!input || isProcessing) return;
 
+  // Reset flag stopTyping
+  stopTyping = false;
+
   // Hapus pesan awal jika ada
   const initialMessage = document.querySelector(".text-center");
   if (initialMessage) initialMessage.remove();
@@ -63,6 +71,9 @@ async function sendMessage() {
   addMessage(input, "user");
   userInput.value = "";
   isProcessing = true;
+
+  // Ubah tombol Send menjadi Stop
+  toggleSendButton(true);
 
   // Tambahkan indikator loading
   const loadingId = addLoadingIndicator();
@@ -99,39 +110,6 @@ async function sendMessage() {
         (member) => member.name === "Rahmat Mulia"
       );
       responseText = `${rahmat.name} adalah ${rahmat.role} saya, ${aiData.name}. Dia adalah ${rahmat.description} Dia memimpin proyek ini sejak ${aiData.creationDate}.`;
-    } else if (lowerInput.includes("aditya pratama")) {
-      const aditya = aiData.team.find(
-        (member) => member.name === "Aditya Pratama"
-      );
-      responseText = `${aditya.name} adalah ${aditya.role} dalam tim saya, ${aiData.name}. Dia adalah ${aditya.description}`;
-    } else if (lowerInput.includes("siti nurhaliza")) {
-      const siti = aiData.team.find(
-        (member) => member.name === "Siti Nurhaliza"
-      );
-      responseText = `${siti.name} adalah ${siti.role} dalam tim saya, ${aiData.name}. Dia adalah ${siti.description}`;
-    } else if (lowerInput.includes("budi santoso")) {
-      const budi = aiData.team.find((member) => member.name === "Budi Santoso");
-      responseText = `${budi.name} adalah ${budi.role} dalam tim saya, ${aiData.name}. Dia adalah ${budi.description}`;
-    } else if (
-      lowerInput.includes("ganteng") ||
-      lowerInput.includes("cantik") ||
-      lowerInput.includes("pribadi")
-    ) {
-      const personName = aiData.team.some((member) =>
-        lowerInput.includes(member.name.toLowerCase())
-      )
-        ? aiData.team.find((member) =>
-            lowerInput.includes(member.name.toLowerCase())
-          ).name
-        : null;
-
-      if (personName) {
-        responseText = `Tentu saja, ${personName} sangat menarik! Selain berbakat dalam pekerjaannya, dia juga memiliki kepribadian yang luar biasa dan pesona yang memikat.`;
-      } else {
-        responseText = `Hmm, saya rasa semua tim saya sangat menarik! ${aiData.team
-          .map((member) => `${member.name}`)
-          .join(", ")} semuanya memiliki pesona dan bakat yang luar biasa.`;
-      }
     } else if (
       lowerInput.includes("fitur") ||
       lowerInput.includes("apa yang bisa kamu lakukan")
@@ -173,7 +151,7 @@ async function sendMessage() {
       responseText =
         data.choices?.[0]?.message?.content ||
         "Maaf, Skia mengalami kesalahan saat memproses permintaan Anda.";
-      isMarkdown = responseText.includes("```"); // Deteksi Markdown berdasarkan kode
+      isMarkdown = responseText.includes("```");
     }
 
     removeLoadingIndicator(loadingId);
@@ -183,8 +161,36 @@ async function sendMessage() {
     await typeMessage(`Error: ${error.message}`, "bot", false);
   } finally {
     isProcessing = false;
+    toggleSendButton(false); // Kembalikan ke Send
     chatContainer.scrollTop = chatContainer.scrollHeight;
   }
+}
+
+// Fungsi untuk mengubah tombol Send menjadi Stop dan sebaliknya
+function toggleSendButton(isStop) {
+  if (isStop) {
+    sendButton.innerHTML = `
+      <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="currentColor">
+        <rect x="6" y="6" width="12" height="12" rx="2"/>
+      </svg>`;
+    sendButton.classList.remove("text-gray-400", "hover:text-blue-400");
+    sendButton.classList.add("text-red-400", "hover:text-red-500");
+  } else {
+    sendButton.innerHTML = `
+      <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M22 2L11 13" />
+        <path d="M22 2L15 22l-4-9-9-4 20-7z" />
+      </svg>`;
+    sendButton.classList.remove("text-red-400", "hover:text-red-500");
+    sendButton.classList.add("text-gray-400", "hover:text-blue-400");
+  }
+}
+
+// Fungsi untuk menghentikan pengetikan
+function stopMessage() {
+  stopTyping = true;
+  isProcessing = false;
+  toggleSendButton(false);
 }
 
 // Fungsi untuk menambahkan pesan
@@ -212,7 +218,7 @@ function addMessage(text, role, isMarkdown = false) {
   if (isMarkdown) applyMarkdownStyles(contentDiv);
 }
 
-// Fungsi untuk efek ketik dengan Markdown langsung rapi
+// Fungsi untuk efek ketik dengan kontrol stop
 async function typeMessage(text, role, isMarkdown = false) {
   const messageDiv = document.createElement("div");
   messageDiv.classList.add("mb-2", "max-w-[95%]", "self-start", "text-white");
@@ -224,21 +230,23 @@ async function typeMessage(text, role, isMarkdown = false) {
 
   if (isMarkdown) {
     let currentText = "";
-    for (let i = 0; i < text.length; i++) {
+    for (let i = 0; i < text.length && !stopTyping; i++) {
       currentText = text.substring(0, i + 1);
       contentDiv.innerHTML = marked.parse(currentText);
       applyMarkdownStyles(contentDiv);
       await new Promise((resolve) => setTimeout(resolve, 2));
       chatContainer.scrollTop = chatContainer.scrollHeight;
     }
+    if (stopTyping) contentDiv.innerHTML = marked.parse(currentText); // Tampilkan teks yang sudah diketik
   } else {
     let currentText = "";
-    for (let i = 0; i < text.length; i++) {
+    for (let i = 0; i < text.length && !stopTyping; i++) {
       currentText += text[i];
       contentDiv.textContent = currentText;
       await new Promise((resolve) => setTimeout(resolve, 8));
       chatContainer.scrollTop = chatContainer.scrollHeight;
     }
+    if (stopTyping) contentDiv.textContent = currentText; // Tampilkan teks yang sudah diketik
   }
 }
 
