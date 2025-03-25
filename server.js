@@ -1,16 +1,23 @@
-const chatContainer = document.getElementById("chatContainer");
-const userInput = document.getElementById("userInput");
-const sendButton = document.getElementById("sendButton");
-const suggestionButtons = document.querySelectorAll(".suggestion");
-let isProcessing = false;
-let stopTyping = false; // Flag untuk menghentikan pengetikan
+// DOM Elements (tetap sama)
+const elements = {
+  chatContainer: document.getElementById("chatContainer"),
+  userInput: document.getElementById("userInput"),
+  sendButton: document.getElementById("sendButton"),
+  suggestionButtons: document.querySelectorAll(".suggestion"),
+};
 
-// Simulasi data AI dan tim pengembang
+// State (tetap sama)
+let state = {
+  isProcessing: false,
+  stopTyping: false,
+};
+
+// AI Data (diperkaya)
 const aiData = {
-  name: "Skia",
+  name: "SkiAI",
   version: "Ski 2.0",
   creator: "Rahmat Mulia",
-  creationDate: "15 Januari 2023",
+  creationDate: "15 Maret 2025",
   team: [
     {
       name: "Rahmat Mulia",
@@ -19,184 +26,296 @@ const aiData = {
     },
   ],
   features: [
-    "Respon cepat dengan efek ketik",
-    "Dukungan Markdown untuk kode",
-    "Percakapan interaktif",
-    "Simulasi AI cerdas",
+    "**Respon cepat** dengan efek ketik dinamis",
+    "Dukungan penuh **Markdown** untuk kode dan formatting",
+    "Percakapan interaktif yang alami",
+    "Integrasi dengan **SkiAI 2.0**",
     "Penyesuaian bahasa alami",
   ],
-  currentDate: new Date().toLocaleDateString("id-ID", {
-    day: "numeric",
-    month: "long",
-    year: "numeric",
-  }),
+  getCurrentDate: () =>
+    new Date().toLocaleDateString("id-ID", {
+      day: "numeric",
+      month: "long",
+      year: "numeric",
+    }),
+  greeting: () => {
+    const hour = new Date().getHours();
+    return hour < 11
+      ? "Selamat pagi"
+      : hour < 15
+      ? "Selamat siang"
+      : hour < 19
+      ? "Selamat sore"
+      : "Selamat malam";
+  },
 };
 
-// Event listener untuk tombol Enter
-userInput.addEventListener("keypress", (event) => {
+// Event Listeners (tetap sama)
+elements.userInput.addEventListener("keypress", (event) => {
   if (event.key === "Enter" && !event.shiftKey) {
     event.preventDefault();
-    if (!isProcessing) sendMessage();
-    else stopMessage();
+    state.isProcessing ? stopMessage() : sendMessage();
   }
 });
 
-// Event listener untuk tombol Send/Stop
-sendButton.addEventListener("click", () => {
-  if (!isProcessing) sendMessage();
-  else stopMessage();
-});
+elements.sendButton.addEventListener("click", () =>
+  state.isProcessing ? stopMessage() : sendMessage()
+);
 
-// Event listener untuk tombol saran
-suggestionButtons.forEach((button) => {
+elements.suggestionButtons.forEach((button) =>
   button.addEventListener("click", () => {
-    userInput.value = button.textContent;
+    elements.userInput.value = button.textContent;
     sendMessage();
-  });
-});
+  })
+);
 
-// Fungsi utama untuk mengirim pesan
+// Fungsi untuk membersihkan teks (dimodifikasi)
+function cleanText(text) {
+  // Biarkan markdown tags (*, _, `, dll)
+  return text
+    .replace(/(\n\s*)+/g, "\n") // Hilangkan spasi berlebih setelah newline
+    .trim();
+}
+
+// Core Functions (dimodifikasi untuk formatting)
 async function sendMessage() {
-  const input = userInput.value.trim();
-  if (!input || isProcessing) return;
+  const input = elements.userInput.value.trim();
+  if (!input || state.isProcessing) return;
 
-  // Reset flag stopTyping
-  stopTyping = false;
-
-  // Hapus pesan awal jika ada
-  const initialMessage = document.querySelector(".text-center");
-  if (initialMessage) initialMessage.remove();
-
-  // Tambahkan pesan pengguna
+  state.stopTyping = false;
+  removeInitialMessage();
   addMessage(input, "user");
-  userInput.value = "";
-  isProcessing = true;
-
-  // Ubah tombol Send menjadi Stop
+  elements.userInput.value = "";
+  state.isProcessing = true;
   toggleSendButton(true);
 
-  // Tambahkan indikator loading
   const loadingId = addLoadingIndicator();
 
   try {
-    let responseText = "";
-    let isMarkdown = false;
-
-    // Simulasi respons untuk pertanyaan tertentu
-    const lowerInput = input.toLowerCase();
-
-    if (lowerInput.includes("siapa nama") || lowerInput.includes("apa nama")) {
-      responseText = `Nama saya ${aiData.name}, versi ${aiData.version}. Saya dibuat oleh ${aiData.creator} bersama timnya. Senang bertemu dengan Anda! Bagaimana saya bisa membantu Anda hari ini?`;
-    } else if (
-      lowerInput.includes("yang membuat") ||
-      lowerInput.includes("pencipta") ||
-      lowerInput.includes("tim")
-    ) {
-      responseText = `Saya diciptakan oleh ${
-        aiData.creator
-      }, seorang Developer hebat, : \n- ${aiData.team
-        .map(
-          (member) => `${member.name} (${member.role}) - ${member.description}`
-        )
-        .join(
-          "\n- "
-        )}\nSeorang yang sangat berbakat dan berdedikasi untuk membuat saya, ${
-        aiData.name
-      } ${aiData.version}, menjadi asisten AI yang membantu!`;
-    } else if (lowerInput.includes("ski 2.0")) {
-      responseText = `${aiData.version} adalah versi saya, ${aiData.name}. Saya dirancang oleh ${aiData.creator} dan timnya untuk memberikan jawaban cepat, mendukung Markdown, dan membantu dalam berbagai tugas. Coba tanyakan apa saja!`;
-    } else if (lowerInput.includes("rahmat mulia")) {
-      const rahmat = aiData.team.find(
-        (member) => member.name === "Rahmat Mulia"
-      );
-      responseText = `${rahmat.name} adalah ${rahmat.role} saya, ${aiData.name}. Dia adalah ${rahmat.description} Dia memimpin proyek ini sejak ${aiData.creationDate}.`;
-    } else if (
-      lowerInput.includes("fitur") ||
-      lowerInput.includes("apa yang bisa kamu lakukan")
-    ) {
-      responseText = `Saya memiliki beberapa fitur keren:\n- ${aiData.features.join(
-        "\n- "
-      )}\nCoba tanyakan apa saja untuk melihat saya beraksi!`;
-    } else if (
-      lowerInput.includes("tanggal") ||
-      lowerInput.includes("hari ini")
-    ) {
-      responseText = `Hari ini adalah ${aiData.currentDate}. Apa yang bisa saya bantu lebih lanjut?`;
-    } else if (
-      lowerInput.includes("bantu saya coding") ||
-      lowerInput.includes("contoh kode")
-    ) {
-      responseText =
-        "Tentu! Berikut adalah contoh kode JavaScript sederhana untuk menghitung faktorial:\n```javascript\nfunction factorial(n) {\n    if (n === 0) return 1;\n    return n * factorial(n - 1);\n}\nconsole.log(factorial(5)); // Output: 120\n```\nApakah Anda ingin contoh lain atau bantuan spesifik?";
-      isMarkdown = true;
-    } else {
-      // Panggil API eksternal untuk pertanyaan lain
-      const response = await fetch(
-        "https://small-union-fb5c.rahmatyoung10.workers.dev/",
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            model: "google/gemini-2.0-flash-001",
-            messages: [{ role: "user", content: input }],
-          }),
-        }
-      );
-
-      if (!response.ok) {
-        throw new Error(`HTTP error! Status: ${response.status}`);
-      }
-
-      const data = await response.json();
-      responseText =
-        data.choices?.[0]?.message?.content ||
-        "Maaf, Skia mengalami kesalahan saat memproses permintaan Anda.";
-      isMarkdown = responseText.includes("```");
-    }
-
+    const { text: rawText, isMarkdown } = await generateResponse(input);
+    const responseText = cleanText(rawText);
     removeLoadingIndicator(loadingId);
     await typeMessage(responseText, "bot", isMarkdown);
   } catch (error) {
     removeLoadingIndicator(loadingId);
-    await typeMessage(`Error: ${error.message}`, "bot", false);
+    await typeMessage(`**Error:** ${error.message}`, "bot", true); // Format error sebagai markdown
   } finally {
-    isProcessing = false;
-    toggleSendButton(false); // Kembalikan ke Send
-    chatContainer.scrollTop = chatContainer.scrollHeight;
+    state.isProcessing = false;
+    toggleSendButton(false);
+    scrollToBottom();
   }
 }
 
-// Fungsi untuk mengubah tombol Send menjadi Stop dan sebaliknya
-function toggleSendButton(isStop) {
-  if (isStop) {
-    sendButton.innerHTML = `
-      <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="currentColor">
-        <rect x="6" y="6" width="12" height="12" rx="2"/>
-      </svg>`;
-    sendButton.classList.remove("text-gray-400", "hover:text-blue-400");
-    sendButton.classList.add("text-red-400", "hover:text-red-500");
+async function generateResponse(input) {
+  const lowerInput = input.toLowerCase();
+
+  if (/halo|hai|hello|hi/i.test(lowerInput)) {
+    return {
+      text: `**${aiData.greeting()}!** 👋\n\nSaya **${
+        aiData.name
+      }**, asisten AI Anda. Ada yang bisa saya bantu?\n\nBeberapa hal yang bisa Anda tanyakan:\n- Siapa pembuat saya?\n- Fitur apa saja yang saya miliki?\n- Berikan contoh kode JavaScript\n- Apa yang bisa kamu lakukan?`,
+      isMarkdown: true,
+    };
+  }
+
+  if (lowerInput.includes("siapa nama") || lowerInput.includes("apa nama")) {
+    return {
+      text: `Nama saya **${aiData.name}**, versi ${aiData.version}. Saya dibuat oleh **${aiData.creator}**. Senang bertemu dengan Anda! ✨`,
+      isMarkdown: true,
+    };
+  }
+
+  if (
+    lowerInput.includes("yang membuat") ||
+    lowerInput.includes("pencipta") ||
+    lowerInput.includes("tim")
+  ) {
+    return {
+      text: `**Tim Pengembang ${aiData.name}:**\n\n${aiData.team
+        .map((m) => `- **${m.name}** (${m.role}) - ${m.description}`)
+        .join("\n")}`,
+      isMarkdown: true,
+    };
+  }
+
+  if (lowerInput.includes("ski 2.0")) {
+    return {
+      text: `**${aiData.version}** adalah versi terbaru dari ${
+        aiData.name
+      }, dengan fitur:\n${aiData.features.map((f) => `  - ${f}`).join("\n")}`,
+      isMarkdown: true,
+    };
+  }
+
+  if (lowerInput.includes("rahmat mulia")) {
+    const rahmat = aiData.team[0];
+    return {
+      text: `**${rahmat.name}** adalah ${rahmat.role} di balik ${aiData.name}. ${rahmat.description} Beliau menciptakan saya pada ${aiData.creationDate}.`,
+      isMarkdown: true,
+    };
+  }
+
+  if (
+    lowerInput.includes("fitur") ||
+    lowerInput.includes("apa yang bisa kamu lakukan")
+  ) {
+    return {
+      text: `**Fitur Unggulan ${aiData.name}:**\n${aiData.features
+        .map((f) => `- ${f}`)
+        .join("\n")}\n\n*Cobalah tanyakan sesuatu yang spesifik!*`,
+      isMarkdown: true,
+    };
+  }
+
+  if (lowerInput.includes("tanggal") || lowerInput.includes("hari ini")) {
+    return {
+      text: `📅 Hari ini tanggal **${aiData.getCurrentDate()}**`,
+      isMarkdown: true,
+    };
+  }
+
+  if (
+    lowerInput.includes("bantu saya coding") ||
+    lowerInput.includes("contoh kode")
+  ) {
+    return {
+      text: "**Contoh Kode JavaScript (Faktorial):**\n```javascript\nfunction factorial(n) {\n  if (n === 0) return 1;\n  return n * factorial(n - 1);\n}\n\nconsole.log(factorial(5)); // Output: 120\n```\n\n*Butuh contoh bahasa lain? Coba tanya!*",
+      isMarkdown: true,
+    };
+  }
+
+  return await fetchExternalApi(input);
+}
+
+async function fetchExternalApi(input) {
+  try {
+    const response = await fetch(
+      "https://small-union-fb5c.rahmatyoung10.workers.dev/",
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          model: "google/gemini-2.0-flash-001",
+          messages: [{ role: "user", content: input }],
+          format: "markdown", // Minta response dalam format markdown
+        }),
+      }
+    );
+
+    if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
+    const data = await response.json();
+    const rawText =
+      data.choices?.[0]?.message?.content ||
+      "Maaf, terjadi kesalahan dalam memproses permintaan Anda.";
+
+    return {
+      text: rawText + "\n\n*— Powered by SkiAI*",
+      isMarkdown: true, // Asumsikan API selalu return markdown
+    };
+  } catch (error) {
+    return {
+      text: `**⚠️ Gangguan Koneksi**\n\nSaya tidak bisa terhubung ke server. Silakan coba lagi nanti.\n\n*Detail:* ${error.message}`,
+      isMarkdown: true,
+    };
+  }
+}
+
+// UI Functions (dimodifikasi untuk styling lebih baik)
+function addMessage(text, role, isMarkdown = false) {
+  const messageDiv = document.createElement("div");
+  messageDiv.className = `mb-3 max-w-[90%] ${
+    role === "user" ? "ml-auto" : "mr-auto"
+  }`;
+
+  const bubble = document.createElement("div");
+  bubble.className = `px-4 py-3 rounded-2xl ${
+    role === "user"
+      ? "bg-gradient-to-r from-blue-600 to-indigo-700 text-white"
+      : "bg-gray-800 text-gray-100"
+  }`;
+
+  if (isMarkdown) {
+    bubble.innerHTML = marked.parse(text);
+    // Terapkan styling tambahan untuk elemen markdown
+    bubble.querySelectorAll("pre").forEach((el) => {
+      el.className = "bg-gray-900 rounded-lg p-3 my-2 overflow-x-auto text-sm";
+    });
+    bubble.querySelectorAll("code").forEach((el) => {
+      if (!el.parentElement.matches("pre")) {
+        el.className = "bg-gray-700 px-1.5 py-0.5 rounded text-sm";
+      }
+    });
+    bubble.querySelectorAll("ul, ol").forEach((el) => {
+      el.className = "list-disc pl-5 my-2 space-y-1";
+    });
+    bubble.querySelectorAll("strong").forEach((el) => {
+      el.className = "font-semibold text-white";
+    });
   } else {
-    sendButton.innerHTML = `
-      <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-        <path d="M22 2L11 13" />
-        <path d="M22 2L15 22l-4-9-9-4 20-7z" />
-      </svg>`;
-    sendButton.classList.remove("text-red-400", "hover:text-red-500");
-    sendButton.classList.add("text-gray-400", "hover:text-blue-400");
+    bubble.textContent = text;
+  }
+
+  messageDiv.appendChild(bubble);
+  elements.chatContainer.appendChild(messageDiv);
+  scrollToBottom();
+}
+
+// Fungsi typeMessage yang dimodifikasi
+async function typeMessage(text, role, isMarkdown = false) {
+  const messageDiv = document.createElement("div");
+  messageDiv.className = `mb-3 max-w-[90%] ${
+    role === "user" ? "ml-auto" : "mr-auto"
+  }`;
+
+  const bubble = document.createElement("div");
+  bubble.className = `px-4 py-3 rounded-2xl ${
+    role === "user"
+      ? "bg-gradient-to-r from-blue-600 to-indigo-700 text-white"
+      : "bg-gray-800 text-gray-100"
+  }`;
+
+  messageDiv.appendChild(bubble);
+  elements.chatContainer.appendChild(messageDiv);
+
+  let currentText = "";
+  for (let i = 0; i < text.length && !state.stopTyping; i++) {
+    currentText = text.substring(0, i + 1);
+    if (isMarkdown) {
+      bubble.innerHTML = marked.parse(currentText);
+      // Terapkan styling untuk elemen markdown
+      bubble.querySelectorAll("pre").forEach((el) => {
+        el.className =
+          "bg-gray-900 rounded-lg p-3 my-2 overflow-x-auto text-sm";
+      });
+    } else {
+      bubble.textContent = currentText;
+    }
+    await sleep(20);
+    scrollToBottom();
   }
 }
 
-// Fungsi untuk menghentikan pengetikan
+// Fungsi lainnya tetap sama...
+
+// UI Functions
+function toggleSendButton(isStop) {
+  elements.sendButton.innerHTML = isStop
+    ? `<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="6" width="12" height="12" rx="2"/></svg>`
+    : `<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 2L11 13" /><path d="M22 2L15 22l-4-9-9-4 20-7z" /></svg>`;
+  elements.sendButton.classList.toggle("text-red-400", isStop);
+  elements.sendButton.classList.toggle("hover:text-red-500", isStop);
+  elements.sendButton.classList.toggle("text-gray-400", !isStop);
+  elements.sendButton.classList.toggle("hover:text-blue-400", !isStop);
+}
+
 function stopMessage() {
-  stopTyping = true;
-  isProcessing = false;
+  state.stopTyping = true;
+  state.isProcessing = false;
   toggleSendButton(false);
 }
 
-// Fungsi untuk menambahkan pesan
 function addMessage(text, role, isMarkdown = false) {
-  const messageDiv = document.createElement("div");
-  messageDiv.classList.add(
+  const messageDiv = createElement("div", [
     "mb-2",
     "max-w-[95%]",
     "px-3",
@@ -204,97 +323,106 @@ function addMessage(text, role, isMarkdown = false) {
     "rounded-xl",
     "text-white",
     role === "user" ? "bg-dark-600" : "",
-    role === "user" ? "self-end" : "self-start"
-  );
-
-  const contentDiv = document.createElement("div");
-  contentDiv.classList.add("message-bubble");
+    role === "user" ? "self-end" : "self-start",
+  ]);
+  const contentDiv = createElement("div", ["message-bubble"]);
   contentDiv.innerHTML = isMarkdown ? marked.parse(text) : text;
-
   messageDiv.appendChild(contentDiv);
-  chatContainer.appendChild(messageDiv);
-  chatContainer.scrollTop = chatContainer.scrollHeight;
-
+  elements.chatContainer.appendChild(messageDiv);
   if (isMarkdown) applyMarkdownStyles(contentDiv);
+  scrollToBottom();
 }
 
-// Fungsi untuk efek ketik dengan kontrol stop
 async function typeMessage(text, role, isMarkdown = false) {
-  const messageDiv = document.createElement("div");
-  messageDiv.classList.add("mb-2", "max-w-[95%]", "self-start", "text-white");
-
-  const contentDiv = document.createElement("div");
-  contentDiv.classList.add("message-bubble");
+  const messageDiv = createElement("div", [
+    "mb-2",
+    "max-w-[95%]",
+    "self-start",
+    "text-white",
+  ]);
+  const contentDiv = createElement("div", ["message-bubble"]);
   messageDiv.appendChild(contentDiv);
-  chatContainer.appendChild(messageDiv);
+  elements.chatContainer.appendChild(messageDiv);
 
-  if (isMarkdown) {
-    let currentText = "";
-    for (let i = 0; i < text.length && !stopTyping; i++) {
-      currentText = text.substring(0, i + 1);
-      contentDiv.innerHTML = marked.parse(currentText);
-      applyMarkdownStyles(contentDiv);
-      await new Promise((resolve) => setTimeout(resolve, 2));
-      chatContainer.scrollTop = chatContainer.scrollHeight;
-    }
-    if (stopTyping) contentDiv.innerHTML = marked.parse(currentText); // Tampilkan teks yang sudah diketik
-  } else {
-    let currentText = "";
-    for (let i = 0; i < text.length && !stopTyping; i++) {
-      currentText += text[i];
-      contentDiv.textContent = currentText;
-      await new Promise((resolve) => setTimeout(resolve, 8));
-      chatContainer.scrollTop = chatContainer.scrollHeight;
-    }
-    if (stopTyping) contentDiv.textContent = currentText; // Tampilkan teks yang sudah diketik
+  let currentText = "";
+  for (let i = 0; i < text.length && !state.stopTyping; i++) {
+    currentText = text.substring(0, i + 1);
+    contentDiv.innerHTML = isMarkdown ? marked.parse(currentText) : currentText;
+    if (isMarkdown) applyMarkdownStyles(contentDiv);
+    await sleep(isMarkdown ? 2 : 8);
+    scrollToBottom();
   }
+  if (state.stopTyping)
+    contentDiv.innerHTML = isMarkdown ? marked.parse(currentText) : currentText;
 }
 
-// Fungsi untuk indikator loading
 function addLoadingIndicator() {
-  const messageDiv = document.createElement("div");
-  messageDiv.classList.add("mb-2", "max-w-[95%]", "self-start");
-
-  const dotsContainer = document.createElement("div");
-  dotsContainer.classList.add("bg-dark-700", "px-3", "py-2", "rounded-xl");
+  const messageDiv = createElement("div", [
+    "mb-2",
+    "max-w-[95%]",
+    "self-start",
+  ]);
+  const dotsContainer = createElement("div", [
+    "bg-dark-700",
+    "px-3",
+    "py-2",
+    "rounded-xl",
+  ]);
   dotsContainer.innerHTML = `
-        <div class="flex space-x-1">
-            <div class="w-2 h-2 bg-dark-300 rounded-full animate-typing-pulse"></div>
-            <div class="w-2 h-2 bg-dark-300 rounded-full animate-typing-pulse" style="animation-delay: 0.2s;"></div>
-            <div class="w-2 h-2 bg-dark-300 rounded-full animate-typing-pulse" style="animation-delay: 0.4s;"></div>
-        </div>
-    `;
-
+    <div class="flex space-x-1">
+      <div class="w-2 h-2 bg-dark-300 rounded-full animate-typing-pulse"></div>
+      <div class="w-2 h-2 bg-dark-300 rounded-full animate-typing-pulse" style="animation-delay: 0.2s;"></div>
+      <div class="w-2 h-2 bg-dark-300 rounded-full animate-typing-pulse" style="animation-delay: 0.4s;"></div>
+    </div>`;
   messageDiv.appendChild(dotsContainer);
-  chatContainer.appendChild(messageDiv);
-  chatContainer.scrollTop = chatContainer.scrollHeight;
+  elements.chatContainer.appendChild(messageDiv);
+  scrollToBottom();
   return Date.now();
 }
 
-// Fungsi untuk menghapus indikator loading
-function removeLoadingIndicator(id) {
-  const loadingElements = document.querySelectorAll(".flex.space-x-1");
-  if (loadingElements.length > 0) {
-    loadingElements[loadingElements.length - 1].parentNode.parentNode.remove();
-  }
+function removeLoadingIndicator() {
+  const lastLoading = elements.chatContainer.querySelector(
+    ".flex.space-x-1:last-child"
+  );
+  if (lastLoading) lastLoading.parentNode.parentNode.remove();
 }
 
-// Fungsi untuk mengaplikasikan gaya Markdown
 function applyMarkdownStyles(contentDiv) {
-  contentDiv.querySelectorAll("pre").forEach((pre) => {
-    pre.classList.add(
-      "bg-black",
-      "rounded-md",
-      "p-4",
-      "my-3",
-      "overflow-x-auto",
-      "text-white"
+  contentDiv
+    .querySelectorAll("pre")
+    .forEach((pre) =>
+      pre.classList.add(
+        "bg-black",
+        "rounded-md",
+        "p-4",
+        "my-3",
+        "overflow-x-auto",
+        "text-white"
+      )
     );
-  });
   contentDiv.querySelectorAll("code").forEach((code) => {
-    if (code.parentElement.tagName !== "PRE") {
+    if (code.parentElement.tagName !== "PRE")
       code.classList.add("bg-black", "px-1", "py-0.5", "rounded", "text-white");
-    }
   });
   contentDiv.querySelectorAll("p").forEach((p) => p.classList.add("my-2"));
+}
+
+// Utility Functions
+function createElement(tag, classes) {
+  const element = document.createElement(tag);
+  element.classList.add(...classes.filter(Boolean));
+  return element;
+}
+
+function scrollToBottom() {
+  elements.chatContainer.scrollTop = elements.chatContainer.scrollHeight;
+}
+
+function removeInitialMessage() {
+  const initialMessage = elements.chatContainer.querySelector(".text-center");
+  if (initialMessage) initialMessage.remove();
+}
+
+function sleep(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
 }
