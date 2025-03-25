@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>SkiAI - Intelligent Assistance Reimagined</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/4.3.0/marked.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
       tailwind.config = {
@@ -73,9 +74,55 @@
       }
 
       body {
-        overflow-y: auto; /* Mengizinkan scroll vertikal pada body */
+        overflow-y: auto;
       }
 
+      /* Styling untuk chat container */
+      .chat-container {
+        display: flex;
+        flex-direction: column;
+        height: 100vh;
+      }
+
+      .messages-wrapper {
+        flex: 1;
+        overflow-y: auto;
+        padding-bottom: 120px; /* Space untuk input area */
+      }
+
+      #chatContainer {
+        min-height: calc(100% - 120px);
+        padding: 1rem;
+        display: flex;
+        flex-direction: column;
+      }
+
+      /* Input area styling */
+      .input-area {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        background: linear-gradient(to right, #1a1a2e, #16213e);
+        padding: 16px;
+        border-top: 1px solid #2d3748;
+        z-index: 100;
+      }
+
+      /* Message styling */
+      .message {
+        max-width: 90%;
+        margin-bottom: 1rem;
+      }
+
+      .message-bubble {
+        word-break: break-word;
+        line-height: 1.4;
+        font-size: 14px;
+        overflow-wrap: break-word;
+      }
+
+      /* Scrollbar styling */
       #chatContainer {
         scrollbar-width: thin;
         scrollbar-color: rgba(156, 163, 175, 0.5) rgba(31, 41, 55, 0.1);
@@ -99,13 +146,6 @@
         height: 4px;
       }
 
-      .message-bubble {
-        word-break: break-word;
-        line-height: 1.4;
-        font-size: 14px;
-        overflow-wrap: break-word;
-      }
-
       @media (max-width: 640px) {
         body {
           font-size: 14px;
@@ -119,11 +159,26 @@
         .text-lg {
           font-size: 0.875rem;
         }
+        .messages-wrapper {
+          padding-bottom: 140px; /* Lebih besar untuk mobile */
+        }
+      }
+
+      .message-bubble strong {
+        font-weight: bold;
+      }
+      .message-bubble ul,
+      .message-bubble ol {
+        list-style: disc inside;
+        margin: 0.5rem 0;
+      }
+      .message-bubble li {
+        margin-bottom: 0.25rem;
       }
     </style>
   </head>
   <body class="text-gray-100 dark">
-    <div class="flex flex-col min-h-screen bg-dark-900">
+    <div class="chat-container bg-dark-900">
       <!-- Header -->
       <header
         class="bg-dark-900 p-4 flex items-center justify-between shadow-lg"
@@ -227,39 +282,44 @@
         </div>
       </header>
 
-      <div class="flex-1 flex flex-col">
-        <div
-          id="chatContainer"
-          class="flex-1 overflow-y-auto p-4 bg-gradient-to-br from-dark-900 to-dark-800 flex flex-col items-center"
-        >
-          <div class="text-center text-white px-20 py-10 animate-fade-in mt-20">
+      <!-- Chat Area -->
+      <div
+        class="messages-wrapper bg-gradient-to-br from-dark-1000 to-dark-1000"
+      >
+        <div id="chatContainer" class="max-w-3xl mx-auto w-full">
+          <!-- Welcome message -->
+          <div class="text-center text-white px-20 py-20 animate-fade-in">
             <p
               class="text-lg text-gray-200 font-semibold"
-              style="text-shadow: 5px 5px 6px rgba(0, 0, 0, 0.3)"
+              style="text-shadow: 5px 5px 6px rgba(0, 0, 0, 0)"
             >
               Halo! Ada yang bisa saya bantu?
             </p>
           </div>
+          <!-- Messages will appear here -->
         </div>
       </div>
 
       <!-- Input Area -->
-      <div class="bg-gradient-to-r from-dark-900 to-dark-800 p-3 shadow-2xl">
+      <div class="p-4">
         <div class="relative max-w-3xl mx-auto">
           <div
-            class="w-full p-3 bg-dark-700 border border-dark-800 rounded-full flex items-center space-x-2 text-white"
+            class="w-full p-3 border rounded-full flex items-center space-x-2"
           >
             <input
               id="userInput"
               type="text"
-              class="flex-1 bg-transparent focus:outline-none text-white placeholder-dark-300 text-base"
+              class="flex-1 bg-transparent focus:outline-none text-base"
               placeholder="Ada yang bisa saya bantu hari ini?"
               autocomplete="off"
             />
-            <button id="sendButton" class="text-gray-400 hover:text-blue-400">
+            <button
+              id="sendButton"
+              class="text-gray-400 hover:text-blue-400 transition-colors duration-200"
+            >
               <svg
                 xmlns="http://www.w3.org/2000/svg"
-                class="h-5 w-5"
+                class="h-6 w-6"
                 viewBox="0 0 24 24"
                 fill="none"
                 stroke="currentColor"
@@ -271,7 +331,6 @@
             </button>
           </div>
           <div class="text-center text-xs text-gray-400 mt-2 px-4">
-            <p class="animate-fade-in">
               SkiAI dapat membuat kesalahan. Periksa info penting.
             </p>
           </div>
