@@ -195,7 +195,7 @@ async function fetchExternalApi(input) {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          model: "google/gemini-2.0-flash-001",
+          model: "google/gemini-2.0-flash-lite-001",
           messages: [{ role: "user", content: input }],
           format: "markdown", // Minta response dalam format markdown
         }),
